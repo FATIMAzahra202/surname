@@ -1,51 +1,55 @@
-import streamlit as st  # Importi streamlit bach tdir interface web
-import requests  # Importi requests bach t'envoyi des requêtes HTTP
-import pandas as pd  # Importi pandas bach tdir manipulation dial data b DataFrame
-import matplotlib.pyplot as plt  # Importi matplotlib bach tdir des graphiques
+import streamlit as st  # Import Streamlit for creating web interfaces
+import requests  # Import requests to make HTTP requests
+import pandas as pd  # Import pandas for data manipulation
+import matplotlib.pyplot as plt  # Import matplotlib for plotting graphs
 
 def get_nationality(name):
-    # T'sift requête GET l'API nationalize.io bach tjib lik les origines dial smiya li dkhlti
-    response = requests.get(f"https://api.nationalize.io?name={name}")
-    if response.status_code == 200:  # Ila kanat réponse réussie (code 200)
-        return response.json()  # Rje3 JSON dial résultat
-    else:
-        return None  # Rje3 None ila kan chi problème m3a requête
+    # Send a GET request to the nationalize.io API to predict the origins of a name
+    try:
+        response = requests.get(f"https://api.nationalize.io?name={name}")
+        response.raise_for_status()  # Raises an exception for HTTP errors
+        return response.json()  # Return the JSON response if successful
+    except requests.RequestException as e:
+        st.error(f"Failed to retrieve data: {e}")  # Display error in Streamlit interface
+        return None
 
 def display_nationality(data):
-    if data and 'country' in data:  # T'checki ila jatk data w fihom 'country'
-        results = []  # Khlli tableau fih résultat
-        for country in data['country']:  # Loopi 3la koll country f data
+    # Display nationality data if available
+    if data and 'country' in data:  # Check if the data contains 'country'
+        results = []  # List to store results
+        for country in data['country']:  # Iterate through each country in the response
             result = {
-                "Pays": country['country_id'],  # Sauvgardi id dial country
-                "Probabilité (%)": f"{country['probability']*100:.2f}"  # Calculi probabilité w formattiha b %.2f
+                "Pays": country['country_id'],  # Country ID
+                "Probabilité (%)": f"{country['probability']*100:.2f}"  # Probability formatted to two decimal places
             }
-            results.append(result)  # Zidi résultat f tableau
-        df = pd.DataFrame(results)  # Converti résultats en DataFrame
+            results.append(result)
+        df = pd.DataFrame(results)  # Convert results list to DataFrame
         return df
     else:
-        st.write("Aucune donnée trouvée pour ce nom de famille.")  # Affichi message ila ma jatch data
+        st.write("Aucune donnée trouvée pour ce nom de famille.")  # Display message if no data is found
         return pd.DataFrame()
 
-st.title('Devinez l’origine des noms de famille')  # Titre dial page
+st.title('Devinez l’origine des noms de famille')  # Page title
 
-name_input = st.text_input('Entrez un nom de famille:', '')  # Khlli utilisateur ydakhel smiya
+name_input = st.text_input('Entrez un nom de famille:', '')  # Text input for entering a name
 
-if st.button('Devinez l’origine'):  # Khlli bouton bach utilisateur yklikki 3lih
-    if name_input:  # T'checki ila utilisateur dakhel chi smiya
-        data = get_nationality(name_input)  # Sift smiya l function get_nationality
-        result_df = display_nationality(data)  # Khddem function display_nationality b data li jat
+if st.button('Devinez l’origine'):  # Button to trigger origin guess
+    if name_input:  # Check if a name has been entered
+        data = get_nationality(name_input)  # Fetch nationality data for the entered name
+        result_df = display_nationality(data)  # Display nationality data
         if not result_df.empty:
             st.download_button(
-                label="Télécharger les données",  # Titre dial bouton
-                data=result_df.to_csv(index=False).encode('utf-8'),  # Prépari data b format CSV bach ytelechargiha
-                file_name=f"{name_input}_origins.csv",  # Smmi fichier
-                mime='text/csv',  # Type dial fichier
+                label="Télécharger les données",  # Download button text
+                data=result_df.to_csv(index=False).encode('utf-8'),  # Prepare data as CSV for download
+                file_name=f"{name_input}_origins.csv",  # Set the file name for the download
+                mime='text/csv',  # MIME type for the file
             )
 
-            # Créer un graphique à barres des probabilités
+            # Create a bar chart of probabilities
             fig, ax = plt.subplots()
             ax.bar(result_df['Pays'], result_df['Probabilité (%)'].astype(float), color='skyblue')
             plt.xlabel('Pays')
             plt.ylabel('Probabilité (%)')
             plt.title('Probabilité que le nom soit originaire de')
-            st.pyplot(fig)  # Affichi le graphique dans Streamlit
+            st.pyplot(fig)  # Display the plot in Streamlit
+
