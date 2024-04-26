@@ -22,7 +22,7 @@ def display_nationality(data):
                 "Probabilité (%)": f"{country['probability']*100:.2f}"
             }
             results.append(result)
-        st.bar_chart(pd.DataFrame({'Pays': countries, 'Probabilité (%)': probabilities}))  # Display bar chart
+        st.bar_chart(pd.DataFrame({'Pays': countries, 'Probabilité (%)': probabilities}), use_container_width=True, height=500)  # Display horizontal bar chart
         st.write("Probabilités par pays:")
         for country, probability in zip(countries, probabilities):
             st.write(f"{country}: {probability:.2f}%")
