@@ -1,8 +1,6 @@
 import streamlit as st 
 import requests
 import pandas as pd   
-import seaborn as sns
-import io
 
 def get_nationality(name):
     response = requests.get(f"https://api.nationalize.io?name={name}")
@@ -24,12 +22,7 @@ def display_nationality(data):
                 "Probabilité (%)": f"{country['probability']*100:.2f}"
             }
             results.append(result)
-        df = pd.DataFrame({'Pays': countries, 'Probabilité (%)': probabilities})
-        sns.set_style("whitegrid")
-        plt.figure(figsize=(10, 6))
-        chart = sns.barplot(x='Probabilité (%)', y='Pays', data=df, palette='viridis')
-        chart.set(xlabel="Probabilité (%)", ylabel="Pays")
-        st.pyplot()  # Display horizontal bar chart
+        st.bar_chart(pd.DataFrame({'Pays': countries, 'Probabilité (%)': probabilities}), use_container_width=True, height=500)  # Display horizontal bar chart
         st.write("Probabilités par pays:")
         for country, probability in zip(countries, probabilities):
             st.write(f"{country}: {probability:.2f}%")
@@ -46,10 +39,10 @@ if st.button('Devinez l’origine'):
     if name_input:
         data = get_nationality(name_input)
         result_df = display_nationality(data)
-        csv = result_df.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="Télécharger le graphique",
-            data=io.BytesIO(),
+            label="Télécharger les données",
+            data=result_df.to_csv(index=False).encode('utf-8'),
             file_name=f"{name_input}_origins.csv",
             mime='text/csv',
         )
+
