@@ -1,7 +1,6 @@
 import streamlit as st 
 import requests
 import pandas as pd   
-import matplotlib.pyplot as plt
 import seaborn as sns
 
 def get_nationality(name):
@@ -25,11 +24,10 @@ def display_nationality(data):
             }
             results.append(result)
         df = pd.DataFrame({'Pays': countries, 'Probabilité (%)': probabilities})
-        fig, ax = plt.subplots()
-        sns.barplot(x='Probabilité (%)', y='Pays', data=df, ax=ax)
-        ax.set_xlabel('Probabilité (%)')
-        ax.set_ylabel('Pays')
-        st.pyplot(fig)  # Display horizontal bar chart
+        sns.set(style="whitegrid")
+        plt.figure(figsize=(10, 6))
+        sns.barplot(x='Probabilité (%)', y='Pays', data=df, palette='viridis')
+        st.pyplot()  # Display horizontal bar chart
         st.write("Probabilités par pays:")
         for country, probability in zip(countries, probabilities):
             st.write(f"{country}: {probability:.2f}%")
